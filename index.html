@@ -2,31 +2,66 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>レトロテトリス</title>
+<title>Emo Retro Tetris</title>
 
 <style>
 
 body{
-    background:black;
-    color:#00ff88;
+    margin:0;
+    height:100vh;
+    background:linear-gradient(
+        to bottom,
+        #1a002b,
+        #3a0066,
+        #ff5e7e,
+        #ffb86b
+    );
     font-family:monospace;
+    color:white;
     text-align:center;
 }
 
 h1{
-    text-shadow:0 0 10px #00ff88;
+    margin-top:10px;
+    font-size:40px;
+    letter-spacing:4px;
+    text-shadow:
+        0 0 5px #fff,
+        0 0 10px #ff66cc,
+        0 0 20px #ff66cc;
 }
 
 .wrapper{
     display:flex;
     justify-content:center;
-    gap:20px;
+    gap:30px;
+    margin-top:10px;
+}
+
+.panel{
+    background:rgba(0,0,0,0.4);
+    border:2px solid rgba(255,255,255,0.4);
+    padding:10px;
+    backdrop-filter:blur(4px);
+    box-shadow:0 0 20px rgba(255,0,150,0.5);
 }
 
 canvas{
-    background:#001a00;
-    border:3px solid #00ff88;
-    box-shadow:0 0 10px #00ff88;
+    background:rgba(0,0,0,0.6);
+    border:2px solid #fff;
+    box-shadow:
+        0 0 10px #ff66cc,
+        0 0 20px #ff66cc;
+}
+
+#msg{
+    margin-top:10px;
+    font-size:24px;
+    color:#fff;
+    text-shadow:
+        0 0 5px #fff,
+        0 0 10px red,
+        0 0 20px red;
 }
 
 </style>
@@ -37,27 +72,32 @@ canvas{
 <h1>RETRO TETRIS</h1>
 
 <div class="wrapper">
-    <canvas id="game" width="240" height="400"></canvas>
-    <div>
-        <p>NEXT</p>
-        <canvas id="next" width="80" height="80"></canvas>
-        <p id="msg"></p>
-    </div>
+
+<div class="panel">
+<canvas id="game" width="240" height="400"></canvas>
+</div>
+
+<div class="panel">
+<p>NEXT</p>
+<canvas id="next" width="80" height="80"></canvas>
+<p id="msg"></p>
+</div>
+
 </div>
 
 <script>
 
-const COLS = 12;
-const ROWS = 20;
-const SIZE = 20;
+const COLS=12;
+const ROWS=20;
+const SIZE=20;
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 
-const nextCanvas = document.getElementById("next");
-const nextCtx = nextCanvas.getContext("2d");
+const nextCanvas=document.getElementById("next");
+const nextCtx=nextCanvas.getContext("2d");
 
-const msg = document.getElementById("msg");
+const msg=document.getElementById("msg");
 
 let board=[];
 for(let y=0;y<ROWS;y++){
@@ -72,18 +112,39 @@ const shapes=[
 [[0,1,1],[1,1,0]]
 ];
 
+const colors=[
+"#ff66cc",
+"#66ccff",
+"#ffff66",
+"#ff9966",
+"#66ff99"
+];
+
 let piece,nextPiece;
+let color,nextColor;
+
 let px,py;
 let gameOver=false;
 
+function rand(n){
+    return Math.floor(Math.random()*n);
+}
+
 function randomPiece(){
-    return shapes[Math.floor(Math.random()*shapes.length)];
+    let i=rand(shapes.length);
+    return [shapes[i],colors[i]];
 }
 
 function newPiece(){
 
-    piece = nextPiece || randomPiece();
-    nextPiece = randomPiece();
+    if(nextPiece){
+        piece=nextPiece;
+        color=nextColor;
+    }else{
+        [piece,color]=randomPiece();
+    }
+
+    [nextPiece,nextColor]=randomPiece();
 
     px=4;
     py=0;
@@ -95,9 +156,21 @@ function newPiece(){
 
 }
 
-function drawBlock(ctx,x,y){
-    ctx.fillStyle="#00ff88";
-    ctx.fillRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1);
+function drawBlock(ctx,x,y,c){
+
+    ctx.fillStyle=c;
+
+    ctx.shadowColor=c;
+    ctx.shadowBlur=10;
+
+    ctx.fillRect(
+        x*SIZE,
+        y*SIZE,
+        SIZE-1,
+        SIZE-1
+    );
+
+    ctx.shadowBlur=0;
 }
 
 function draw(){
@@ -106,14 +179,16 @@ function draw(){
 
     for(let y=0;y<ROWS;y++){
         for(let x=0;x<COLS;x++){
-            if(board[y][x]) drawBlock(ctx,x,y);
+            if(board[y][x]){
+                drawBlock(ctx,x,y,board[y][x]);
+            }
         }
     }
 
     for(let y=0;y<piece.length;y++){
         for(let x=0;x<piece[y].length;x++){
             if(piece[y][x]){
-                drawBlock(ctx,px+x,py+y);
+                drawBlock(ctx,px+x,py+y,color);
             }
         }
     }
@@ -129,8 +204,21 @@ function drawNext(){
     for(let y=0;y<nextPiece.length;y++){
         for(let x=0;x<nextPiece[y].length;x++){
             if(nextPiece[y][x]){
-                nextCtx.fillStyle="#00ff88";
-                nextCtx.fillRect(x*20,y*20,18,18);
+
+                nextCtx.fillStyle=nextColor;
+
+                nextCtx.shadowColor=nextColor;
+                nextCtx.shadowBlur=10;
+
+                nextCtx.fillRect(
+                    x*20,
+                    y*20,
+                    18,
+                    18
+                );
+
+                nextCtx.shadowBlur=0;
+
             }
         }
     }
@@ -163,7 +251,7 @@ function merge(){
     for(let y=0;y<piece.length;y++){
         for(let x=0;x<piece[y].length;x++){
             if(piece[y][x]){
-                board[py+y][px+x]=1;
+                board[py+y][px+x]=color;
             }
         }
     }
@@ -243,9 +331,8 @@ function update(){
 
 }
 
-nextPiece=randomPiece();
 newPiece();
-setInterval(update,500);
+setInterval(update,400);
 
 </script>
 </body>
