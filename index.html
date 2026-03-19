@@ -2,103 +2,164 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Tetris風ゲーム</title>
+<title>レトロテトリス</title>
 
 <style>
+
 body{
     background:black;
-    color:white;
+    color:#00ff88;
+    font-family:monospace;
     text-align:center;
-    font-family:sans-serif;
+}
+
+h1{
+    text-shadow:0 0 10px #00ff88;
+}
+
+.wrapper{
+    display:flex;
+    justify-content:center;
+    gap:20px;
 }
 
 canvas{
-    background:#111;
-    margin-top:20px;
-    border:3px solid white;
+    background:#001a00;
+    border:3px solid #00ff88;
+    box-shadow:0 0 10px #00ff88;
 }
-</style>
 
+</style>
 </head>
+
 <body>
 
-<h1>テトリス風ゲーム</h1>
-<p>← → 移動 / ↑ 回転 / ↓ 落下</p>
+<h1>RETRO TETRIS</h1>
 
-<canvas id="game" width="240" height="400"></canvas>
+<div class="wrapper">
+    <canvas id="game" width="240" height="400"></canvas>
+    <div>
+        <p>NEXT</p>
+        <canvas id="next" width="80" height="80"></canvas>
+        <p id="msg"></p>
+    </div>
+</div>
 
 <script>
-
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
 
 const COLS = 12;
 const ROWS = 20;
 const SIZE = 20;
 
-let board = [];
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const nextCanvas = document.getElementById("next");
+const nextCtx = nextCanvas.getContext("2d");
+
+const msg = document.getElementById("msg");
+
+let board=[];
 for(let y=0;y<ROWS;y++){
-    board[y]=[];
-    for(let x=0;x<COLS;x++){
-        board[y][x]=0;
-    }
+    board[y]=new Array(COLS).fill(0);
 }
 
-const shapes = [
-    [[1,1,1,1]],
-    [[1,1],[1,1]],
-    [[0,1,0],[1,1,1]],
-    [[1,1,0],[0,1,1]],
-    [[0,1,1],[1,1,0]]
+const shapes=[
+[[1,1,1,1]],
+[[1,1],[1,1]],
+[[0,1,0],[1,1,1]],
+[[1,1,0],[0,1,1]],
+[[0,1,1],[1,1,0]]
 ];
 
-let piece;
+let piece,nextPiece;
 let px,py;
+let gameOver=false;
+
+function randomPiece(){
+    return shapes[Math.floor(Math.random()*shapes.length)];
+}
 
 function newPiece(){
-    piece = shapes[Math.floor(Math.random()*shapes.length)];
-    px = 4;
-    py = 0;
+
+    piece = nextPiece || randomPiece();
+    nextPiece = randomPiece();
+
+    px=4;
+    py=0;
+
+    if(collide(px,py,piece)){
+        gameOver=true;
+        msg.textContent="GAME OVER";
+    }
+
+}
+
+function drawBlock(ctx,x,y){
+    ctx.fillStyle="#00ff88";
+    ctx.fillRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1);
 }
 
 function draw(){
+
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
     for(let y=0;y<ROWS;y++){
         for(let x=0;x<COLS;x++){
-            if(board[y][x]){
-                ctx.fillStyle="cyan";
-                ctx.fillRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1);
-            }
+            if(board[y][x]) drawBlock(ctx,x,y);
         }
     }
 
     for(let y=0;y<piece.length;y++){
         for(let x=0;x<piece[y].length;x++){
             if(piece[y][x]){
-                ctx.fillStyle="red";
-                ctx.fillRect((px+x)*SIZE,(py+y)*SIZE,SIZE-1,SIZE-1);
+                drawBlock(ctx,px+x,py+y);
             }
         }
     }
+
+    drawNext();
+
+}
+
+function drawNext(){
+
+    nextCtx.clearRect(0,0,80,80);
+
+    for(let y=0;y<nextPiece.length;y++){
+        for(let x=0;x<nextPiece[y].length;x++){
+            if(nextPiece[y][x]){
+                nextCtx.fillStyle="#00ff88";
+                nextCtx.fillRect(x*20,y*20,18,18);
+            }
+        }
+    }
+
 }
 
 function collide(nx,ny,p){
+
     for(let y=0;y<p.length;y++){
         for(let x=0;x<p[y].length;x++){
-            if(p[y][x]){
-                let xx = nx+x;
-                let yy = ny+y;
 
-                if(xx<0 || xx>=COLS || yy>=ROWS) return true;
+            if(p[y][x]){
+
+                let xx=nx+x;
+                let yy=ny+y;
+
+                if(xx<0||xx>=COLS||yy>=ROWS) return true;
                 if(yy>=0 && board[yy][xx]) return true;
+
             }
+
         }
     }
+
     return false;
 }
 
 function merge(){
+
     for(let y=0;y<piece.length;y++){
         for(let x=0;x<piece[y].length;x++){
             if(piece[y][x]){
@@ -106,22 +167,29 @@ function merge(){
             }
         }
     }
+
 }
 
 function rotate(p){
+
     let r=[];
+
     for(let x=0;x<p[0].length;x++){
         r[x]=[];
         for(let y=p.length-1;y>=0;y--){
             r[x].push(p[y][x]);
         }
     }
+
     return r;
 }
 
 function clearLines(){
+
     for(let y=ROWS-1;y>=0;y--){
+
         let full=true;
+
         for(let x=0;x<COLS;x++){
             if(!board[y][x]) full=false;
         }
@@ -131,10 +199,14 @@ function clearLines(){
             board.unshift(new Array(COLS).fill(0));
             y++;
         }
+
     }
+
 }
 
 document.addEventListener("keydown",e=>{
+
+    if(gameOver) return;
 
     if(e.key==="ArrowLeft"){
         if(!collide(px-1,py,piece)) px--;
@@ -149,13 +221,16 @@ document.addEventListener("keydown",e=>{
     }
 
     if(e.key==="ArrowUp"){
-        let r = rotate(piece);
+        let r=rotate(piece);
         if(!collide(px,py,r)) piece=r;
     }
 
 });
 
 function update(){
+
+    if(gameOver) return;
+
     if(!collide(px,py+1,piece)){
         py++;
     }else{
@@ -165,12 +240,13 @@ function update(){
     }
 
     draw();
+
 }
 
+nextPiece=randomPiece();
 newPiece();
 setInterval(update,500);
 
 </script>
-
 </body>
 </html>
