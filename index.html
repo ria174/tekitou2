@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Emo Retro Tetris</title>
+<title>Emo Retro Tetris Warm</title>
 
 <style>
 
@@ -11,10 +11,10 @@ body{
     height:100vh;
     background:linear-gradient(
         to bottom,
-        #1a002b,
-        #3a0066,
-        #ff5e7e,
-        #ffb86b
+        #2b0000,
+        #661a00,
+        #ff5a36,
+        #ffb347
     );
     font-family:monospace;
     color:white;
@@ -23,12 +23,12 @@ body{
 
 h1{
     margin-top:10px;
-    font-size:40px;
+    font-size:38px;
     letter-spacing:4px;
     text-shadow:
         0 0 5px #fff,
-        0 0 10px #ff66cc,
-        0 0 20px #ff66cc;
+        0 0 10px #ff8844,
+        0 0 20px #ff4422;
 }
 
 .wrapper{
@@ -39,29 +39,36 @@ h1{
 }
 
 .panel{
-    background:rgba(0,0,0,0.4);
-    border:2px solid rgba(255,255,255,0.4);
+    background:rgba(0,0,0,0.35);
+    border:2px solid rgba(255,200,150,0.6);
     padding:10px;
     backdrop-filter:blur(4px);
-    box-shadow:0 0 20px rgba(255,0,150,0.5);
+    box-shadow:0 0 20px rgba(255,120,50,0.7);
 }
 
 canvas{
-    background:rgba(0,0,0,0.6);
-    border:2px solid #fff;
+    background:rgba(0,0,0,0.5);
+    border:2px solid #fff3;
     box-shadow:
-        0 0 10px #ff66cc,
-        0 0 20px #ff66cc;
+        0 0 10px #ff8844,
+        0 0 20px #ff5522;
 }
 
 #msg{
     margin-top:10px;
-    font-size:24px;
+    font-size:22px;
     color:#fff;
     text-shadow:
         0 0 5px #fff,
-        0 0 10px red,
-        0 0 20px red;
+        0 0 10px #ff0000,
+        0 0 20px #ff0000;
+}
+
+.controls{
+    margin-top:10px;
+    font-size:14px;
+    color:#ffe0c0;
+    line-height:1.6;
 }
 
 </style>
@@ -78,9 +85,19 @@ canvas{
 </div>
 
 <div class="panel">
+
 <p>NEXT</p>
 <canvas id="next" width="80" height="80"></canvas>
+
 <p id="msg"></p>
+
+<div class="controls">
+操作方法<br>
+← → : 移動<br>
+↑ : 回転<br>
+↓ : 落下
+</div>
+
 </div>
 
 </div>
@@ -113,11 +130,11 @@ const shapes=[
 ];
 
 const colors=[
-"#ff66cc",
-"#66ccff",
-"#ffff66",
-"#ff9966",
-"#66ff99"
+"#ff4040",
+"#ff8840",
+"#ffcc40",
+"#ff6699",
+"#ff9966"
 ];
 
 let piece,nextPiece;
@@ -206,7 +223,6 @@ function drawNext(){
             if(nextPiece[y][x]){
 
                 nextCtx.fillStyle=nextColor;
-
                 nextCtx.shadowColor=nextColor;
                 nextCtx.shadowBlur=10;
 
